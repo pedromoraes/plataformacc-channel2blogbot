@@ -21,11 +21,6 @@ if __name__ == '__main__':
     else:
         botkey = os.environ['TELEBOT_KEY']
 
-    bot = telepot.Bot(botkey)
-    pprint(bot.getMe())
-
-    last_id = 0
-
     def handle_user(user_updates):
         by_date = {}
         is_edit = False
@@ -50,30 +45,39 @@ if __name__ == '__main__':
             })
 
     while 1:
-        updates = bot.getUpdates()
-        users = {}
-        for update in updates:
-            if update['update_id'] <= last_id:
-                continue
-            last_id = update['update_id']
+        try:
+            bot = telepot.Bot(botkey)
+            pprint(bot.getMe())
 
-            if args.devmode: pprint(update)
+            last_id = 0
 
-            if 'channel_post' in update:
-                m = update['channel_post']
-            elif 'edited_channel_post' in update:
-                m = update['edited_channel_post']
-                is_edit = True
-            else:
-                print('unknown update')
-                pprint(update)
-                continue
+            while 1:
+                updates = bot.getUpdates()
+                users = {}
+                for update in updates:
+                    if update['update_id'] <= last_id:
+                        continue
+                    last_id = update['update_id']
 
-            user = m['chat']['username']
-            if not user in users: users[user] = []
-            users[user].append(m)
+                    if args.devmode: pprint(update)
 
-        for user in users:
-            handle_user(users[user])
+                    if 'channel_post' in update:
+                        m = update['channel_post']
+                    elif 'edited_channel_post' in update:
+                        m = update['edited_channel_post']
+                        is_edit = True
+                    else:
+                        print('unknown update')
+                        pprint(update)
+                        continue
 
-        time.sleep(10)
+                    user = m['chat']['username']
+                    if not user in users: users[user] = []
+                    users[user].append(m)
+
+                for user in users:
+                    handle_user(users[user])
+
+                time.sleep(10)
+        except:
+            print("timeout")
